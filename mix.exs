@@ -5,7 +5,7 @@ defmodule MerkleTreeElixir.MixProject do
     [
       app: :merkle_tree_elixir,
       version: "0.1.0",
-      elixir: "~> 1.7-dev",
+      elixir: "~> 1.6.1",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
