@@ -1,21 +1,8 @@
-# MerkleTreeElixir
+#### Royal Institute of Technology KTH - Stockholm
+# Merkle Tree Implementation in Elixir
+[![Build Status](https://travis-ci.org/SimoneStefani/merkle-tree-elixir.svg?branch=master)](https://travis-ci.org/SimoneStefani/merkle-tree-elixir)
 
-**TODO: Add description**
+A **hash tree** or **Merkle tree** is a tree in which every leaf node is labelled with the hash of a data block and every non-leaf node is labelled with the cryptographic hash of the labels of its child nodes. Hash trees allow efficient and secure verification of the contents of large data structures. Hash trees are a generalization of hash lists and hash chains. 
+<br>(from [Merkle Tree - Wikipedia](https://en.wikipedia.org/wiki/Merkle_tree))
 
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `merkle_tree_elixir` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:merkle_tree_elixir, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/merkle_tree_elixir](https://hexdocs.pm/merkle_tree_elixir).
-
+_This repository contains code written during the spring semester 2018 by Simone Stefani and Dean Rauschenbusch_
