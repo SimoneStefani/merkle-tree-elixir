@@ -35,6 +35,7 @@ defmodule MerkleTreeElixirTest do
       right_child: {0, "2", nil, nil},
       leafs: [{"1", :left}, {"2", :right}]
     }
+
     assert(MerkleTreeElixir.is_balanced_tree(tree))
   end
 
@@ -46,21 +47,31 @@ defmodule MerkleTreeElixirTest do
       right_child: {1, "3", {0, "3", nil, nil}, nil},
       leafs: [{"1", :left}, {"2", :right}, {"3", :left}]
     }
+
     refute(MerkleTreeElixir.is_balanced_tree(tree))
   end
 
   test "add leaf to unbalanced tree" do
-    tree =
-      {2, "123", {1, "12", {0, "1", nil, nil}, {0, "2", nil, nil}},
-       {1, "3", {0, "3", nil, nil}, nil}}
+    tree = %MerkleTreeElixir{
+      depth: 2,
+      root_hash: "123",
+      left_child: {1, "12", {0, "1", nil, nil}, {0, "2", nil, nil}},
+      right_child: {1, "3", {0, "3", nil, nil}, nil},
+      leafs: [{"1", :left}, {"2", :right}, {"3", :left}]
+    }
 
     tree = MerkleTreeElixir.append_leaf_to_unbalanced_tree("4", tree)
     IO.inspect(tree)
 
     assert(
       tree ==
-        {2, "1234", {1, "12", {0, "1", nil, nil}, {0, "2", nil, nil}},
-         {1, "34", {0, "3", nil, nil}, {0, "4", nil, nil}}}
+      %MerkleTreeElixir{
+        depth: 3,
+        root_hash: "1234",
+        left_child: {1, "12", {0, "1", nil, nil}, {0, "2", nil, nil}},
+        right_child: {1, "34", {0, "3", nil, nil}, {0, "4", nil, nil}},
+        leafs: [{"1", :left}, {"2", :right}, {"3", :left}, {"4", :right}]
+      }
     )
   end
 
