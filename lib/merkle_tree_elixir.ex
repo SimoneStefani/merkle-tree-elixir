@@ -1,9 +1,12 @@
 defmodule MerkleTreeElixir do
-  def new_tree(), do: nil
+  
+  defstruct depth: 0, root_hash: nil, left_child: nil, right_child: nil, leafs: [nil] 
+  
+  def new_tree(), do: %MerkleTreeElixir{}
 
-  def insert_leaf_into_tree(data, nil), do: {0, hash_data(data), nil, nil}
+  def add_leaf_to_tree(data, nil), do: {0, hash_data(data), nil, nil}
 
-  def insert_leaf_into_tree(data, tree) do
+  def add_leaf_to_tree(data, tree) do
     case is_balanced_tree(tree) do
       true -> append_leaf_to_balanced_tree(data, tree)
       false -> append_leaf_to_unbalanced_tree(data, tree)

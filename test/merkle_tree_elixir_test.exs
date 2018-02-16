@@ -2,6 +2,11 @@ defmodule MerkleTreeElixirTest do
   use ExUnit.Case
   doctest MerkleTreeElixir
 
+  test "create new tree" do
+    assert(MerkleTreeElixir.new_tree() == %MerkleTreeElixir{depth: 0, root_hash: nil, left_child: nil, right_child: nil, leafs: [nil]})
+  end
+
+
   test "detect a new tree is balanced" do
     assert(MerkleTreeElixir.is_balanced_tree({0, 1, nil, nil}))
   end
