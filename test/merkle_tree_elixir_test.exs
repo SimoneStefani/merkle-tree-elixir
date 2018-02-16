@@ -61,7 +61,6 @@ defmodule MerkleTreeElixirTest do
     }
 
     tree = MerkleTreeElixir.append_leaf_to_unbalanced_tree("4", tree)
-    IO.inspect(tree)
 
     assert(
       tree ==
@@ -85,7 +84,6 @@ defmodule MerkleTreeElixirTest do
     }
 
     tree = MerkleTreeElixir.append_leaf_to_balanced_tree("3", tree)
-    IO.inspect(tree)
 
     assert(
       tree ==

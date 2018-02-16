@@ -13,12 +13,11 @@ defmodule MerkleTreeElixir do
   # end
 
   def is_balanced_tree({_, _, nil, nil}), do: true
-  def is_balanced_tree({_, _, left, nil}), do: false
-  def is_balanced_tree({_, _, left, right}), do: is_balanced_tree(right)
-  def is_balanced_tree({_, _, left, right}), do: is_balanced_tree(right)
+  def is_balanced_tree({_, _, _, nil}), do: false
+  def is_balanced_tree({_, _, _, right}), do: is_balanced_tree(right)
 
   def is_balanced_tree(
-        tree = %MerkleTreeElixir{
+        %MerkleTreeElixir{
           depth: 0,
           root_hash: nil,
           left_child: nil,
@@ -30,13 +29,13 @@ defmodule MerkleTreeElixir do
 
   def is_balanced_tree(tree = %MerkleTreeElixir{}), do: is_balanced_tree(tree.right_child)
 
-  def append_leaf_to_unbalanced_tree(new_data, {depth, data, left, nil}) do
+  def append_leaf_to_unbalanced_tree(new_data, {_, data, left, nil}) do
     {1, hash_data(data, new_data), left, {0, hash_data(new_data), nil, nil}}
   end
 
   def append_leaf_to_unbalanced_tree(
         new_data,
-        {depth, _, {d, data, left_left, right_right}, right}
+        {_, _, {d, data, left_left, right_right}, right}
       ) do
     foo = append_leaf_to_unbalanced_tree(new_data, right)
     {depth, value, _, _} = foo
