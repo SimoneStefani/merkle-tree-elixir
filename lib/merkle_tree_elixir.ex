@@ -27,8 +27,8 @@ defmodule MerkleTreeElixir do
     {depth + 1, hash_data(data, value), {d, data, left_left, right_right}, foo}
   end
 
-  def append_leaf_to_balanced_tree(data, {depth, value, left, right}) do
-    {depth + 1, hash_data(value, data), {depth, value, left, right}, bubble_down(depth, data)}
+  def append_leaf_to_balanced_tree(data, tree = %MerkleTreeElixir{}) do
+    %MerkleTreeElixir{depth: tree.depth + 1, root_hash: hash_data(tree.root_hash, data), left_child: {tree.depth, tree.root_hash, tree.left_child, tree.right_child}, right_child: bubble_down(tree.depth, data), leafs: tree.leafs ++ [{hash_data(data), :left}]}
   end
 
   def bubble_down(0, data) do
