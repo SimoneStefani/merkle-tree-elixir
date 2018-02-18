@@ -42,7 +42,7 @@ defmodule DictMT do
     to_string(left_hash <> right_hash)
   end
 
-  @spec root_hash(tree()) :: hash() | undefined
+  @spec root_hash(tree()) :: hash() | :undefined
   @doc """
   Return the hash of root node.
   """
@@ -74,12 +74,12 @@ defmodule DictMT do
     end
   end
 
-  @spec verify_merkle_proof(key(), value(), root :: hash(), merkle_proof()) ::
-          :ok | {:error, reason}
-        when reason ::
-               {key_hash_mismatch, hash()}
-               | {value_hash_mismatch, hash()}
-               | {root_hash_mismatch, hash()}
+  # @spec verify_merkle_proof(key(), value(), root :: hash(), merkle_proof()) ::
+  #         :ok | {:error, reason}
+  #       when reason ::
+  #              {key_hash_mismatch, hash()}
+  #              | {value_hash_mismatch, hash()}
+  #              | {root_hash_mismatch, hash()}
   @doc """
   Verify a proof against a leaf and a root node hash.
   """
@@ -89,17 +89,17 @@ defmodule DictMT do
 
     cond do
       pkh !== kh ->
-        {:error, {key_hash_mismatch, pkh}}
+        {:error, {:key_hash_mismatch, pkh}}
 
       pvh !== vh ->
-        {:error, {value_hash_mismatch, pkh}}
+        {:error, {:value_hash_mismatch, pkh}}
 
       true ->
         prh = merkle_fold(proof)
 
         cond do
           prh !== root_hash ->
-            {:error, {root_hash_mismatch, prh}}
+            {:error, {:root_hash_mismatch, prh}}
 
           true ->
             :ok
@@ -164,7 +164,7 @@ defmodule DictMT do
   end
 
   @spec from_orddict(ord_dict :: list({key(), value()})) :: tree()
-  @equiv from_orddict(ord_dict, length(ord_dict))
+  # @equiv from_orddict(ord_dict, length(ord_dict))
   def from_orddict(ord_dict) do
     from_orddict(ord_dict, length(ord_dict))
   end
@@ -270,7 +270,7 @@ defmodule DictMT do
 
         case rebalancing_needed(new_tree_size, new_depth) do
           true ->
-            {{innerkey, to_be_computed, left_node, right_node}, 2, 1, false}
+            {{innerkey, :to_be_computed, left_node, right_node}, 2, 1, false}
 
           _ ->
             {{innerkey, inner_hash(node_hash(left_node), node_hash(right_node)), left_node,
@@ -282,8 +282,8 @@ defmodule DictMT do
   def enter_1(key, value, inner_node = {inner_key, _, left_node, right_node}, depth, tree_size) do
     node_to_follow_symb =
       case key < inner_key do
-        true -> left
-        _ -> right
+        true -> :left
+        _ -> :right
       end
 
     {node_to_follow, node_not_changed} =
@@ -292,7 +292,7 @@ defmodule DictMT do
         left -> {left_node, right_node}
       end
 
-    {new_node, rebalancing_count, height, keyExists} =
+    {new_node, rebalancing_count, height, key_exists} =
       enter_1(key, value, node_to_follow, depth + 1, tree_size)
 
     {new_left_node, new_right_node} =
@@ -312,11 +312,11 @@ defmodule DictMT do
       _ ->
         count = rebalancing_count + node_size(node_not_changed)
         new_height = height + 1
-        new_inner_node_unbalanced = {inner_key, to_be_computed, new_left_node, new_right_node}
+        new_inner_node_unbalanced = {inner_key, :to_be_computed, new_left_node, new_right_node}
 
         case may_be_rebalanced(count, new_height) do
           true ->
-            {balance_node(new_inner_node_inbalanced, count), :undefined, :undefined, key_exists}
+            {balance_node(new_inner_node_unbalanced, count), :undefined, :undefined, key_exists}
 
           _ ->
             {new_inner_node_unbalanced, count, new_height, key_exists}
@@ -332,7 +332,7 @@ defmodule DictMT do
 
   @spec may_be_rebalanced(count :: non_neg_integer(), height :: non_neg_integer()) :: boolean()
   def may_be_rebalanced(count, height) do
-    :math.pow(2, height) > :math.pow(count, @C)
+    :math.pow(2, height) > :math.pow(count, @c)
   end
 
   @spec node_size(tree_node()) :: non_neg_integer()
@@ -352,7 +352,7 @@ defmodule DictMT do
   @spec balance_orddict_1(list({key(), value()}), size :: non_neg_integer()) ::
           {tree_node(), list({key(), value()})}
   def balance_orddict_1(ord_dict, size) when size > 1 do
-    size2 = size(div(2))
+    size2 = div(size, 2)
     size1 = size - size2
     {left_node, ord_dict1 = [{key, _} | _]} = balance_orddict_1(ord_dict, size1)
     {right_node, ord_dict2} = balance_orddict_1(ord_dict1, size2)
@@ -433,7 +433,7 @@ defmodule DictMT do
   def merkle_fold({left, right}) do
     left_hash = merkle_fold(left)
     right_hash = merkle_fold(right)
-    to_string(key_hash <> value_hash)
+    to_string(left_hash <> right_hash)
   end
 
   def merkle_fold(hash) do
@@ -441,7 +441,7 @@ defmodule DictMT do
   end
 
   @spec bottom_merkle_proof_pair(merkle_proof()) :: {hash(), hash()}
-  def bottom_merkle_proof_pair({pair, hash}) when is_tuple(pair), is_binary(hash) do
+  def bottom_merkle_proof_pair({pair, hash}) when is_tuple(pair) and is_binary(hash) do
     bottom_merkle_proof_pair(pair)
   end
 
