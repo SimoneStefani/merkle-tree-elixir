@@ -105,6 +105,7 @@ defmodule MerkleTreeElixirTest do
       right_child: {0, "2", nil, nil},
       leafs: [{"1", :left}, {"2", :right}]
     }
+
     assert(MerkleTreeElixir.audit_trail("45", tree) == [])
   end
 
@@ -116,10 +117,10 @@ defmodule MerkleTreeElixirTest do
       right_child: {1, "3", {0, "3", nil, nil}, nil},
       leafs: [{"1", :left}, {"2", :right}, {"3", :left}]
     }
+
     assert(MerkleTreeElixir.audit_trail("1", tree) == [{"3", :right}, {"2", :right}])
     assert(MerkleTreeElixir.audit_trail("2", tree) == [{"3", :right}, {"1", :left}])
     assert(MerkleTreeElixir.audit_trail("3", tree) == [{"12", :left}, {nil, :right}])
-
   end
 
   test "find audit trail for balanced tree" do
@@ -130,6 +131,7 @@ defmodule MerkleTreeElixirTest do
       right_child: {0, "2", nil, nil},
       leafs: [{"1", :left}, {"2", :right}]
     }
+
     assert(MerkleTreeElixir.audit_trail("1", tree) == [{"2", :right}])
     assert(MerkleTreeElixir.audit_trail("2", tree) == [{"1", :left}])
   end

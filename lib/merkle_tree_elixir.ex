@@ -13,7 +13,7 @@ defmodule MerkleTreeElixir do
   end
 
   def audit_trail(hash_to_be_audited, tree = %MerkleTreeElixir{}) do
-    index = Enum.find_index(tree.leafs, fn({x, _}) -> x == hash_to_be_audited end)
+    index = Enum.find_index(tree.leafs, fn {x, _} -> x == hash_to_be_audited end)
 
     case index do
       nil -> []
@@ -36,7 +36,10 @@ defmodule MerkleTreeElixir do
   end
 
   def audit_trail(_, {_, _, nil, nil}, list), do: list
-  def audit_trail(index, {depth, hash, left_child, nil}, list), do: audit_trail(index, left_child, list ++ [{nil, :right}])
+
+  def audit_trail(index, {depth, hash, left_child, nil}, list),
+    do: audit_trail(index, left_child, list ++ [{nil, :right}])
+
   def audit_trail(
         index,
         {depth, hash, {left_depth, left_hash, left_left, left_right},
@@ -50,8 +53,13 @@ defmodule MerkleTreeElixir do
           {right_depth, right_hash, right_left, right_right},
           list ++ [{right_hash, :right}]
         )
+
       false ->
-        audit_trail(index, {left_depth, left_hash, left_left, left_right}, list ++ [{left_hash, :left}])
+        audit_trail(
+          index,
+          {left_depth, left_hash, left_left, left_right},
+          list ++ [{left_hash, :left}]
+        )
     end
   end
 
