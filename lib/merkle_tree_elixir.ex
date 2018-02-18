@@ -4,7 +4,6 @@ defmodule MerkleTreeElixir do
   def new_tree(), do: %MerkleTreeElixir{}
 
   def add_leaf_to_tree(data, %MerkleTreeElixir{ left_child: nil}) do
-      
       hash = hash_data(data)
 
       %MerkleTreeElixir{
@@ -16,7 +15,6 @@ defmodule MerkleTreeElixir do
       }
   end
   def add_leaf_to_tree(data, tree = %MerkleTreeElixir{ right_child: nil}) do
-      
     hash = hash_data(data)
 
     %MerkleTreeElixir{
@@ -35,12 +33,14 @@ end
     end
   end
 
+
   def is_balanced_tree(nil), do: false
   def is_balanced_tree({_, _, nil, nil}), do: true
   def is_balanced_tree({_, _, _, nil}), do: false
   def is_balanced_tree({_, _, _, right}), do: is_balanced_tree(right)
   def is_balanced_tree(%MerkleTreeElixir{depth: 0}), do: true
   def is_balanced_tree(tree = %MerkleTreeElixir{}), do: is_balanced_tree(tree.right_child)
+
 
   def append_leaf_to_unbalanced_tree(new_data, {_, data, left, nil}) do
     {1, hash_data(data, new_data), left, {0, hash_data(new_data), nil, nil}}
@@ -75,10 +75,7 @@ end
     }
   end
 
-  def bubble_down(0, data) do
-    {0, hash_data(data), nil, nil}
-  end
-
+  def bubble_down(0, data), do: {0, hash_data(data), nil, nil}
   def bubble_down(depth, data) do
     {depth, hash_data(data), bubble_down(depth - 1, data), nil}
   end
@@ -139,35 +136,33 @@ end
     end
   end
 
+
   def verify_audit_trail(_, []), do: false
-
-  def verify_audit_trail(root_hash, list),
-    do: verify_audit_trail(root_hash, "", Enum.reverse(list))
-
+  def verify_audit_trail(root_hash, list), do: verify_audit_trail(root_hash, "", Enum.reverse(list))
   def verify_audit_trail(root_hash, root_hash, []), do: true
   def verify_audit_trail(_, _, []), do: false
 
   def verify_audit_trail(root_hash, audit_hash, [{nil, :right} | tail]) do
     verify_audit_trail(root_hash, hash_data(audit_hash, ""), tail)
   end
-
   def verify_audit_trail(root_hash, audit_hash, [{new_hash, :right} | tail]) do
     verify_audit_trail(root_hash, hash_data(audit_hash, new_hash), tail)
   end
-
   def verify_audit_trail(root_hash, audit_hash, [{new_hash, :left} | tail]) do
     verify_audit_trail(root_hash, hash_data(new_hash, audit_hash), tail)
   end
+
+
+  def part_of_left_subtree?(depth, index) do
+    index < :math.pow(2, depth) / 2
+  end
+
 
   def hash_data(data) do
     to_string(data)
     # :crypto.hash_data(:sha256, to_string(data)) 
     # |> Base.encode16 
     # |> String.downcase
-  end
-
-  def part_of_left_subtree?(depth, index) do
-    index < :math.pow(2, depth) / 2
   end
 
   def hash_data(one, two) do
