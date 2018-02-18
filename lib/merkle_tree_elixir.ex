@@ -55,10 +55,6 @@ defmodule MerkleTreeElixir do
     end
   end
 
-  def find_index_of_leaf(_, _, []), do: false
-  def find_index_of_leaf(index, hash, [{hash, _} | _]), do: index
-  def find_index_of_leaf(index, hash, [H | T]), do: find_index_of_leaf(index + 1, hash, T)
-
   def is_balanced_tree({_, _, nil, nil}), do: true
   def is_balanced_tree({_, _, _, nil}), do: false
   def is_balanced_tree({_, _, _, right}), do: is_balanced_tree(right)
