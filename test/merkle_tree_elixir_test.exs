@@ -97,7 +97,7 @@ defmodule MerkleTreeElixirTest do
     )
   end
 
-  test "return empty list for audit_trail if hash non-existent in tree" do
+  test "return empty list for audit_trail if hash is not a leaf in the tree" do
     tree = %MerkleTreeElixir{
       depth: 1,
       root_hash: "12",
@@ -118,9 +118,9 @@ defmodule MerkleTreeElixirTest do
       leafs: [{"1", :left}, {"2", :right}, {"3", :left}]
     }
 
-    assert(MerkleTreeElixir.audit_trail("1", tree) == [{"3", :right}, {"2", :right}])
-    assert(MerkleTreeElixir.audit_trail("2", tree) == [{"3", :right}, {"1", :left}])
-    assert(MerkleTreeElixir.audit_trail("3", tree) == [{"12", :left}, {nil, :right}])
+    assert(MerkleTreeElixir.audit_trail("1", tree) == [{"3", :right}, {"2", :right}, {"1", :left}])
+    assert(MerkleTreeElixir.audit_trail("2", tree) == [{"3", :right}, {"1", :left}, {"2", :right}])
+    assert(MerkleTreeElixir.audit_trail("3", tree) == [{"12", :left}, {nil, :right}, {"3", :left}])
   end
 
   test "find audit trail for balanced tree" do
@@ -132,7 +132,27 @@ defmodule MerkleTreeElixirTest do
       leafs: [{"1", :left}, {"2", :right}]
     }
 
-    assert(MerkleTreeElixir.audit_trail("1", tree) == [{"2", :right}])
-    assert(MerkleTreeElixir.audit_trail("2", tree) == [{"1", :left}])
+    assert(MerkleTreeElixir.audit_trail("1", tree) == [{"2", :right}, {"1", :left}])
+    assert(MerkleTreeElixir.audit_trail("2", tree) == [{"1", :left}, {"2", :right}])
+  end
+
+  test " Verify audit trail" do
+    tree = %MerkleTreeElixir{
+      depth: 2,
+      root_hash: "123",
+      left_child: {1, "12", {0, "1", nil, nil}, {0, "2", nil, nil}},
+      right_child: {1, "3", {0, "3", nil, nil}, nil},
+      leafs: [{"1", :left}, {"2", :right}, {"3", :left}]
+    }
+
+    audit_trail = MerkleTreeElixir.audit_trail("1", tree)
+    assert(MerkleTreeElixir.verify_audit_trail(tree.root_hash, audit_trail) == true)
+    audit_trail = MerkleTreeElixir.audit_trail("2", tree)
+    assert(MerkleTreeElixir.verify_audit_trail(tree.root_hash, audit_trail) == true)
+    audit_trail = MerkleTreeElixir.audit_trail("3", tree)
+    IO.inspect(audit_trail)
+    assert(MerkleTreeElixir.verify_audit_trail(tree.root_hash, audit_trail) == true)
+    audit_trail = MerkleTreeElixir.audit_trail("3124", tree)
+    refute(MerkleTreeElixir.verify_audit_trail(tree.root_hash, audit_trail) == true)
   end
 end
