@@ -61,18 +61,6 @@ defmodule MerkleTreeElixirTest do
     assert(MerkleTreeElixir.is_balanced_tree(MerkleTreeElixir.new_tree()))
   end
 
-  test "detect a unbalanced tree" do
-    tree = %MerkleTreeElixir{
-      depth: 1,
-      root_hash: "12",
-      left_child: {0, "1", nil, nil},
-      right_child: {0, "2", nil, nil},
-      leafs: [{"1", :left}, {"2", :right}]
-    }
-
-    assert(MerkleTreeElixir.is_balanced_tree(tree))
-  end
-
   test "detect an unbalanced tree" do
     tree = %MerkleTreeElixir{
       depth: 2,
@@ -129,6 +117,41 @@ defmodule MerkleTreeElixirTest do
           leafs: [{"1", :left}, {"2", :right}, {"3", :left}]
         }
     )
+  end
+
+  test "add many leafs consecutively" do
+    tree = MerkleTreeElixir.new_tree
+    tree = MerkleTreeElixir.add_leaf_to_tree("1", tree)
+    tree = MerkleTreeElixir.add_leaf_to_tree("2", tree)
+    tree = MerkleTreeElixir.add_leaf_to_tree("3", tree)
+    tree = MerkleTreeElixir.add_leaf_to_tree("4", tree)
+
+    assert(tree == %MerkleTreeElixir{
+      depth: 2,
+      leafs: [{"1", :left}, {"2", :right}, {"3", :left}, {"4", :right}],
+      left_child: {1, "12", {0, "1", nil, nil}, {0, "2", nil, nil}},
+      right_child: {1, "34", {0, "3", nil, nil}, {0, "4", nil, nil}},
+      root_hash: "1234"
+    })
+
+    tree = MerkleTreeElixir.add_leaf_to_tree("5", tree)
+    tree = MerkleTreeElixir.add_leaf_to_tree("6", tree)
+    tree = MerkleTreeElixir.add_leaf_to_tree("7", tree)
+    tree = MerkleTreeElixir.add_leaf_to_tree("8", tree)
+
+    assert(true)
+
+    assert(tree == %MerkleTreeElixir{
+      depth: 3,
+      leafs: [{"1", :left}, {"2", :right}, {"3", :left}, {"4", :right},
+      {"5", :left}, {"6", :right}, {"7", :left}, {"8", :right}],
+      left_child: {2, "1234", {1, "12", {0, "1", nil, nil}, {0, "2", nil, nil}},
+      {1, "34", {0, "3", nil, nil}, {0, "4", nil, nil}}},
+      right_child: {2, "5678", {1, "56", {0, "5", nil, nil}, {0, "6", nil, nil}},
+      {1, "78", {0, "7", nil, nil}, {0, "8", nil, nil}}},
+      root_hash: "12345678"
+    })
+
   end
 
   test "return empty list for audit_trail if hash is not a leaf in the tree" do
