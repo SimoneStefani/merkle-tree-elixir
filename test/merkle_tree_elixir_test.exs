@@ -6,12 +6,46 @@ defmodule MerkleTreeElixirTest do
     assert(
       MerkleTreeElixir.new_tree() == %MerkleTreeElixir{
         depth: 0,
-        root_hash: nil,
+        root_hash: "",
         left_child: nil,
         right_child: nil,
         leafs: [nil]
       }
     )
+  end
+
+  test "add data to new tree" do
+    tree = %MerkleTreeElixir{
+      depth: 0,
+      root_hash: "",
+      left_child: nil,
+      right_child: nil,
+      leafs: [nil]
+    }
+    assert(MerkleTreeElixir.add_leaf_to_tree("1", tree) == %MerkleTreeElixir{
+      depth: 1,
+      root_hash: "1",
+      left_child: {0, "1", nil, nil},
+      right_child: nil,
+      leafs: [{"1", :left}]
+    })
+  end
+
+  test "add data to tree with 1 leaf" do
+    tree = %MerkleTreeElixir{
+      depth: 1,
+      root_hash: "1",
+      left_child: {0, "1", nil, nil},
+      right_child: nil,
+      leafs: [{"1", :left}]
+    }
+    assert(MerkleTreeElixir.add_leaf_to_tree("2", tree) == %MerkleTreeElixir{
+      depth: 1,
+      root_hash: "12",
+      left_child: {0, "1", nil, nil},
+      right_child: {0, "2", nil, nil},
+      leafs: [{"1", :left}, {"2", :right}]
+    })
   end
 
   test "detect a balanced tree" do
@@ -118,9 +152,17 @@ defmodule MerkleTreeElixirTest do
       leafs: [{"1", :left}, {"2", :right}, {"3", :left}]
     }
 
-    assert(MerkleTreeElixir.audit_trail("1", tree) == [{"3", :right}, {"2", :right}, {"1", :left}])
-    assert(MerkleTreeElixir.audit_trail("2", tree) == [{"3", :right}, {"1", :left}, {"2", :right}])
-    assert(MerkleTreeElixir.audit_trail("3", tree) == [{"12", :left}, {nil, :right}, {"3", :left}])
+    assert(
+      MerkleTreeElixir.audit_trail("1", tree) == [{"3", :right}, {"2", :right}, {"1", :left}]
+    )
+
+    assert(
+      MerkleTreeElixir.audit_trail("2", tree) == [{"3", :right}, {"1", :left}, {"2", :right}]
+    )
+
+    assert(
+      MerkleTreeElixir.audit_trail("3", tree) == [{"12", :left}, {nil, :right}, {"3", :left}]
+    )
   end
 
   test "find audit trail for balanced tree" do
@@ -147,11 +189,13 @@ defmodule MerkleTreeElixirTest do
 
     audit_trail = MerkleTreeElixir.audit_trail("1", tree)
     assert(MerkleTreeElixir.verify_audit_trail(tree.root_hash, audit_trail) == true)
+
     audit_trail = MerkleTreeElixir.audit_trail("2", tree)
     assert(MerkleTreeElixir.verify_audit_trail(tree.root_hash, audit_trail) == true)
+
     audit_trail = MerkleTreeElixir.audit_trail("3", tree)
-    IO.inspect(audit_trail)
     assert(MerkleTreeElixir.verify_audit_trail(tree.root_hash, audit_trail) == true)
+
     audit_trail = MerkleTreeElixir.audit_trail("3124", tree)
     refute(MerkleTreeElixir.verify_audit_trail(tree.root_hash, audit_trail) == true)
   end
