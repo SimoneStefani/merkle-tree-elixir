@@ -14,6 +14,19 @@ defmodule MerkleTreeElixirTest do
     )
   end
 
+  test "find index of leaf with a hash" do
+    tree = %MerkleTreeElixir{
+      depth: 2,
+      root_hash: "123",
+      left_child: {1, "12", {0, "1", nil, nil}, {0, "2", nil, nil}},
+      right_child: {1, "3", {0, "3", nil, nil}, nil},
+      leafs: [{"1", :left}, {"2", :right}, {"3", :left}]
+    }
+
+    assert(MerkleTreeElixir.)
+
+  end
+
   test "detect a balanced tree" do
     tree = %MerkleTreeElixir{
       depth: 1,
@@ -96,4 +109,22 @@ defmodule MerkleTreeElixirTest do
         }
     )
   end
+
+  test "find audit trail for balanced tree" do
+    tree =
+        %MerkleTreeElixir{
+          depth: 2,
+          root_hash: "123",
+          left_child: {1, "12", {0, "1", nil, nil}, {0, "2", nil, nil}},
+          right_child: {1, "3", {0, "3", nil, nil}, nil},
+          leafs: [{"1", :left}, {"2", :right}, {"3", :left}]
+        }
+      hash = MerkleTreeElixir.hash_data("3")
+      audit_trail = MerkleTreeElixir.audit_trail(hash)
+
+    assert(audit_trail == [{nil}, {"12", :left}])
+  end
+
+
+
 end
