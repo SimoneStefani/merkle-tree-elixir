@@ -67,7 +67,7 @@ defmodule MerkleTreeElixirTest do
     assert(MerkleTreeElixir.is_balanced_tree(MerkleTreeElixir.new_tree()))
   end
 
-  test "detect an unbalanced tree" do
+  test "detect a unbalanced tree" do
     tree = %MerkleTreeElixir{
       depth: 2,
       root_hash: "123",
@@ -88,7 +88,7 @@ defmodule MerkleTreeElixirTest do
       leafs: [{"1", :left}, {"2", :right}, {"3", :left}]
     }
 
-    tree = MerkleTreeElixir.append_leaf_to_unbalanced_tree("4", tree)
+    tree = MerkleTreeElixir.add_leaf_to_tree("4", tree)
 
     assert(
       tree ==
@@ -102,7 +102,7 @@ defmodule MerkleTreeElixirTest do
     )
   end
 
-  test "add leaf to balanced tree parent" do
+  test "add leaf to balanced tree" do
     tree = %MerkleTreeElixir{
       depth: 1,
       root_hash: "12",
@@ -111,7 +111,7 @@ defmodule MerkleTreeElixirTest do
       leafs: [{"1", :left}, {"2", :right}]
     }
 
-    tree = MerkleTreeElixir.append_leaf_to_balanced_tree("3", tree)
+    tree = MerkleTreeElixir.add_leaf_to_tree("3", tree)
 
     assert(
       tree ==

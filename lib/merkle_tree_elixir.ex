@@ -3,9 +3,22 @@ defmodule MerkleTreeElixir do
 
   def new_tree(), do: %MerkleTreeElixir{}
 
-  def add_leaf_to_tree(data, %MerkleTreeElixir{left_child: nil}) do
-    hash = hash_data(data)
+  def is_balanced_tree(nil), do: false
+  def is_balanced_tree({_, _, nil, nil}), do: true
+  def is_balanced_tree({_, _, _, nil}), do: false
+  def is_balanced_tree({_, _, _, right}), do: is_balanced_tree(right)
+  def is_balanced_tree(%MerkleTreeElixir{depth: 0}), do: true
+  def is_balanced_tree(tree = %MerkleTreeElixir{}), do: is_balanced_tree(tree.right_child)
 
+  def direction_of_new_leaf(number_of_current_leafs) do
+    case rem(number_of_current_leafs, 2) do
+      0 -> :left
+      1 -> :right
+    end
+  end
+
+  def add_leaf_to_tree(new_data, tree = %MerkleTreeElixir{ depth: 0}) do
+    hash = hash_data(new_data)
     %MerkleTreeElixir{
       depth: 1,
       root_hash: hash,
@@ -15,89 +28,47 @@ defmodule MerkleTreeElixir do
     }
   end
 
-  def add_leaf_to_tree(data, tree = %MerkleTreeElixir{right_child: nil}) do
-    hash = hash_data(data)
+  def add_leaf_to_tree(new_data, tree = %MerkleTreeElixir{}) do
+    index = length(tree.leafs)
+    direction = direction_of_new_leaf(length(tree.leafs))
 
-    %MerkleTreeElixir{
-      depth: tree.depth,
-      root_hash: hash_data(tree.root_hash, hash),
-      left_child: tree.left_child,
-      right_child: {0, hash, nil, nil},
-      leafs: tree.leafs ++ [{hash, :right}]
-    }
-  end
-
-  def add_leaf_to_tree(data, tree) do
     case is_balanced_tree(tree) do
-      true -> append_leaf_to_balanced_tree(data, tree)
-      false -> append_leaf_to_unbalanced_tree(data, tree)
+      true ->
+        %MerkleTreeElixir{
+          depth: tree.depth + 1,
+          root_hash: hash_data(tree.root_hash, new_data),
+          left_child: {tree.depth, tree.root_hash, tree.left_child, tree.right_child},
+          right_child: add_leaf_to_tree(tree.depth, new_data, index, nil),
+          leafs: tree.leafs ++ [{hash_data(new_data), direction}]
+        }
+
+      false ->
+        %MerkleTreeElixir{
+          depth: tree.depth,
+          root_hash: hash_data(tree.root_hash, new_data),
+          left_child: tree.left_child,
+          right_child: add_leaf_to_tree(tree.depth-1, new_data, index, tree.right_child),
+          leafs: tree.leafs ++ [{hash_data(new_data), direction}]
+        }
     end
   end
-
-
-  def is_balanced_tree(nil), do: false
-  def is_balanced_tree({_, _, nil, nil}), do: true
-  def is_balanced_tree({_, _, _, nil}), do: false
-  def is_balanced_tree({_, _, _, right}), do: is_balanced_tree(right)
-  def is_balanced_tree(%MerkleTreeElixir{depth: 0}), do: true
-  def is_balanced_tree(tree = %MerkleTreeElixir{}), do: is_balanced_tree(tree.right_child)
-
   
-  def append_leaf_to_unbalanced_tree(0, new_data, _, _), do: {0, hash_data(new_data), nil, nil}
-  def append_leaf_to_unbalanced_tree(depth, new_data, index, nil) do
-    {depth, hash_data(new_data), append_leaf_to_unbalanced_tree(depth-1, new_data, index, nil), nil}
+  def add_leaf_to_tree(0, new_data, _, _), do: {0, hash_data(new_data), nil, nil}
+  def add_leaf_to_tree(depth, new_data, index, nil) do
+    {depth, hash_data(new_data), add_leaf_to_tree(depth-1, new_data, index, nil), nil}
   end
 
-  def append_leaf_to_unbalanced_tree(depth, new_data, index, {depth, hash, left_child, right_child}) do
+  def add_leaf_to_tree(depth, new_data, index, {depth, hash, left_child, right_child}) do
     new_index = abs(index - :math.pow(2, depth))
     case part_of_left_subtree?(depth, new_index) do
       true ->
         {depth, hash_data(hash, new_data),
-         append_leaf_to_unbalanced_tree(depth - 1, new_data, new_index, left_child), nil}
+         add_leaf_to_tree(depth - 1, new_data, new_index, left_child), nil}
 
       false ->
         {depth, hash_data(hash, new_data), left_child,
-         append_leaf_to_unbalanced_tree(depth - 1, new_data, new_index, right_child)}
+         add_leaf_to_tree(depth - 1, new_data, new_index, right_child)}
     end
-  end
-
-  def append_leaf_to_unbalanced_tree(new_data, tree = %MerkleTreeElixir{}) do
-    index = length(tree.leafs)
-    case rem(length(tree.leafs), 2) do
-      1 ->
-        %MerkleTreeElixir{
-          depth: tree.depth,
-          root_hash: hash_data(tree.root_hash, new_data),
-          left_child: tree.left_child,
-          right_child: append_leaf_to_unbalanced_tree(tree.depth-1, new_data, index, tree.right_child),
-          leafs: tree.leafs ++ [{hash_data(new_data), :right}]
-        }
-
-      0 ->
-        %MerkleTreeElixir{
-          depth: tree.depth,
-          root_hash: hash_data(tree.root_hash, new_data),
-          left_child: tree.left_child,
-          right_child: append_leaf_to_unbalanced_tree(tree.depth-1, new_data, index, tree.right_child),
-          leafs: tree.leafs ++ [{hash_data(new_data), :left}]
-        }
-    end
-  end
-
-  def append_leaf_to_balanced_tree(data, tree = %MerkleTreeElixir{}) do
-    %MerkleTreeElixir{
-      depth: tree.depth + 1,
-      root_hash: hash_data(tree.root_hash, data),
-      left_child: {tree.depth, tree.root_hash, tree.left_child, tree.right_child},
-      right_child: bubble_down(tree.depth, data),
-      leafs: tree.leafs ++ [{hash_data(data), :left}]
-    }
-  end
-
-
-  def bubble_down(0, data), do: {0, hash_data(data), nil, nil}
-  def bubble_down(depth, data) do
-    {depth, hash_data(data), bubble_down(depth - 1, data), nil}
   end
 
 
