@@ -56,15 +56,26 @@ end
   end
 
   def append_leaf_to_unbalanced_tree(new_data, tree = %MerkleTreeElixir{}) do
-    %MerkleTreeElixir{
-      depth: tree.depth + 1,
-      root_hash: hash_data(tree.root_hash, new_data),
-      left_child: tree.left_child,
-      right_child: append_leaf_to_unbalanced_tree(new_data, tree.right_child),
-      leafs: tree.leafs ++ [{hash_data(new_data), :right}]
-    }
+    case rem(length(tree.leafs), 2) do
+      1 -> %MerkleTreeElixir{
+        depth: tree.depth,
+        root_hash: hash_data(tree.root_hash, new_data),
+        left_child: tree.left_child,
+        right_child: append_leaf_to_unbalanced_tree(new_data, tree.right_child),
+        leafs: tree.leafs ++ [{hash_data(new_data), :right}]
+      }
+      2 -> %MerkleTreeElixir{
+        depth: tree.depth,
+        root_hash: hash_data(tree.root_hash, new_data),
+        left_child: tree.left_child,
+        right_child: append_leaf_to_unbalanced_tree(new_data, tree.right_child),
+        leafs: tree.leafs ++ [{hash_data(new_data), :left}]
+      }
+    end
   end
 
+
+  
   def append_leaf_to_balanced_tree(data, tree = %MerkleTreeElixir{}) do
     %MerkleTreeElixir{
       depth: tree.depth + 1,

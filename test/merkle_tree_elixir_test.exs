@@ -87,7 +87,7 @@ defmodule MerkleTreeElixirTest do
     assert(
       tree ==
         %MerkleTreeElixir{
-          depth: 3,
+          depth: 2,
           root_hash: "1234",
           left_child: {1, "12", {0, "1", nil, nil}, {0, "2", nil, nil}},
           right_child: {1, "34", {0, "3", nil, nil}, {0, "4", nil, nil}},
@@ -119,7 +119,7 @@ defmodule MerkleTreeElixirTest do
     )
   end
 
-  test "add many leafs consecutively" do
+  test "add 4 leafs consecutively" do
     tree = MerkleTreeElixir.new_tree
     tree = MerkleTreeElixir.add_leaf_to_tree("1", tree)
     tree = MerkleTreeElixir.add_leaf_to_tree("2", tree)
@@ -133,13 +133,18 @@ defmodule MerkleTreeElixirTest do
       right_child: {1, "34", {0, "3", nil, nil}, {0, "4", nil, nil}},
       root_hash: "1234"
     })
+  end
 
+  test "add 8 leafs consecutively" do
+    tree = MerkleTreeElixir.new_tree
+    tree = MerkleTreeElixir.add_leaf_to_tree("1", tree)
+    tree = MerkleTreeElixir.add_leaf_to_tree("2", tree)
+    tree = MerkleTreeElixir.add_leaf_to_tree("3", tree)
+    tree = MerkleTreeElixir.add_leaf_to_tree("4", tree)
     tree = MerkleTreeElixir.add_leaf_to_tree("5", tree)
     tree = MerkleTreeElixir.add_leaf_to_tree("6", tree)
     tree = MerkleTreeElixir.add_leaf_to_tree("7", tree)
     tree = MerkleTreeElixir.add_leaf_to_tree("8", tree)
-
-    assert(true)
 
     assert(tree == %MerkleTreeElixir{
       depth: 3,
@@ -151,7 +156,6 @@ defmodule MerkleTreeElixirTest do
       {1, "78", {0, "7", nil, nil}, {0, "8", nil, nil}}},
       root_hash: "12345678"
     })
-
   end
 
   test "return empty list for audit_trail if hash is not a leaf in the tree" do
