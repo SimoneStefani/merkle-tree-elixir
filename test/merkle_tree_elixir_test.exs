@@ -22,13 +22,16 @@ defmodule MerkleTreeElixirTest do
       right_child: nil,
       leafs: [nil]
     }
-    assert(MerkleTreeElixir.add_leaf_to_tree("1", tree) == %MerkleTreeElixir{
-      depth: 1,
-      root_hash: "1",
-      left_child: {0, "1", nil, nil},
-      right_child: nil,
-      leafs: [{"1", :left}]
-    })
+
+    assert(
+      MerkleTreeElixir.add_leaf_to_tree("1", tree) == %MerkleTreeElixir{
+        depth: 1,
+        root_hash: "1",
+        left_child: {0, "1", nil, nil},
+        right_child: nil,
+        leafs: [{"1", :left}]
+      }
+    )
   end
 
   test "add data to tree with 1 leaf" do
@@ -39,13 +42,16 @@ defmodule MerkleTreeElixirTest do
       right_child: nil,
       leafs: [{"1", :left}]
     }
-    assert(MerkleTreeElixir.add_leaf_to_tree("2", tree) == %MerkleTreeElixir{
-      depth: 1,
-      root_hash: "12",
-      left_child: {0, "1", nil, nil},
-      right_child: {0, "2", nil, nil},
-      leafs: [{"1", :left}, {"2", :right}]
-    })
+
+    assert(
+      MerkleTreeElixir.add_leaf_to_tree("2", tree) == %MerkleTreeElixir{
+        depth: 1,
+        root_hash: "12",
+        left_child: {0, "1", nil, nil},
+        right_child: {0, "2", nil, nil},
+        leafs: [{"1", :left}, {"2", :right}]
+      }
+    )
   end
 
   test "detect a balanced tree" do
@@ -120,23 +126,25 @@ defmodule MerkleTreeElixirTest do
   end
 
   test "add 4 leafs consecutively" do
-    tree = MerkleTreeElixir.new_tree
+    tree = MerkleTreeElixir.new_tree()
     tree = MerkleTreeElixir.add_leaf_to_tree("1", tree)
     tree = MerkleTreeElixir.add_leaf_to_tree("2", tree)
     tree = MerkleTreeElixir.add_leaf_to_tree("3", tree)
     tree = MerkleTreeElixir.add_leaf_to_tree("4", tree)
 
-    assert(tree == %MerkleTreeElixir{
-      depth: 2,
-      leafs: [{"1", :left}, {"2", :right}, {"3", :left}, {"4", :right}],
-      left_child: {1, "12", {0, "1", nil, nil}, {0, "2", nil, nil}},
-      right_child: {1, "34", {0, "3", nil, nil}, {0, "4", nil, nil}},
-      root_hash: "1234"
-    })
+    assert(
+      tree == %MerkleTreeElixir{
+        depth: 2,
+        leafs: [{"1", :left}, {"2", :right}, {"3", :left}, {"4", :right}],
+        left_child: {1, "12", {0, "1", nil, nil}, {0, "2", nil, nil}},
+        right_child: {1, "34", {0, "3", nil, nil}, {0, "4", nil, nil}},
+        root_hash: "1234"
+      }
+    )
   end
 
   test "add 8 leafs consecutively" do
-    tree = MerkleTreeElixir.new_tree
+    tree = MerkleTreeElixir.new_tree()
     tree = MerkleTreeElixir.add_leaf_to_tree("1", tree)
     tree = MerkleTreeElixir.add_leaf_to_tree("2", tree)
     tree = MerkleTreeElixir.add_leaf_to_tree("3", tree)
@@ -146,16 +154,28 @@ defmodule MerkleTreeElixirTest do
     tree = MerkleTreeElixir.add_leaf_to_tree("7", tree)
     tree = MerkleTreeElixir.add_leaf_to_tree("8", tree)
 
-    assert(tree == %MerkleTreeElixir{
-      depth: 3,
-      leafs: [{"1", :left}, {"2", :right}, {"3", :left}, {"4", :right},
-      {"5", :left}, {"6", :right}, {"7", :left}, {"8", :right}],
-      left_child: {2, "1234", {1, "12", {0, "1", nil, nil}, {0, "2", nil, nil}},
-      {1, "34", {0, "3", nil, nil}, {0, "4", nil, nil}}},
-      right_child: {2, "5678", {1, "56", {0, "5", nil, nil}, {0, "6", nil, nil}},
-      {1, "78", {0, "7", nil, nil}, {0, "8", nil, nil}}},
-      root_hash: "12345678"
-    })
+    assert(
+      tree == %MerkleTreeElixir{
+        depth: 3,
+        leafs: [
+          {"1", :left},
+          {"2", :right},
+          {"3", :left},
+          {"4", :right},
+          {"5", :left},
+          {"6", :right},
+          {"7", :left},
+          {"8", :right}
+        ],
+        left_child:
+          {2, "1234", {1, "12", {0, "1", nil, nil}, {0, "2", nil, nil}},
+           {1, "34", {0, "3", nil, nil}, {0, "4", nil, nil}}},
+        right_child:
+        {2, "5678", {1, "56", {0, "5", nil, nil}, {0, "6", nil, nil}},
+        {1, "78", {0, "7", nil, nil}, {0, "8", nil, nil}}},
+        root_hash: "12345678"
+      }
+    )
   end
 
   test "return empty list for audit_trail if hash is not a leaf in the tree" do
@@ -226,4 +246,39 @@ defmodule MerkleTreeElixirTest do
     audit_trail = MerkleTreeElixir.audit_trail("3124", tree)
     refute(MerkleTreeElixir.verify_audit_trail(tree.root_hash, audit_trail) == true)
   end
+
+  test "Audit trail on larger trees leaf > 7" do
+    
+    tree = %MerkleTreeElixir{
+      depth: 3,
+      leafs: [
+        {"1", :left},
+        {"2", :right},
+        {"3", :left},
+        {"4", :right},
+        {"5", :left},
+        {"6", :right},
+        {"7", :left},
+        {"8", :right}
+      ],
+      left_child:
+        {2, "1234", {1, "12", {0, "1", nil, nil}, {0, "2", nil, nil}},
+         {1, "34", {0, "3", nil, nil}, {0, "4", nil, nil}}},
+      right_child:
+      {2, "5678", {1, "56", {0, "5", nil, nil}, {0, "6", nil, nil}},
+      {1, "78", {0, "7", nil, nil}, {0, "8", nil, nil}}},
+      root_hash: "12345678"
+    }
+
+    assert(MerkleTreeElixir.verify_audit_trail(tree.root_hash, MerkleTreeElixir.audit_trail("2", tree)) == true)
+    assert(MerkleTreeElixir.verify_audit_trail(tree.root_hash, MerkleTreeElixir.audit_trail("5", tree)) == true)
+    assert(MerkleTreeElixir.verify_audit_trail(tree.root_hash, MerkleTreeElixir.audit_trail("7", tree)) == true)
+    assert(MerkleTreeElixir.verify_audit_trail(tree.root_hash, MerkleTreeElixir.audit_trail("8", tree)) == true)
+    refute(MerkleTreeElixir.verify_audit_trail(tree.root_hash, MerkleTreeElixir.audit_trail("9", tree)) == true)
+    refute(MerkleTreeElixir.verify_audit_trail(tree.root_hash, MerkleTreeElixir.audit_trail("0", tree)) == true)
+
+
+  end
+
+
 end
