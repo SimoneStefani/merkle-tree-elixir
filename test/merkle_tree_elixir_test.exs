@@ -235,16 +235,16 @@ defmodule MerkleTreeElixirTest do
     }
 
     audit_trail = MerkleTreeElixir.audit_trail("1", tree)
-    assert(MerkleTreeElixir.verify_audit_trail(tree.root_hash, audit_trail) == true)
+    assert(MerkleTreeElixir.verify_audit_trail({tree.root_hash, "1"}, audit_trail) == true)
 
     audit_trail = MerkleTreeElixir.audit_trail("2", tree)
-    assert(MerkleTreeElixir.verify_audit_trail(tree.root_hash, audit_trail) == true)
+    assert(MerkleTreeElixir.verify_audit_trail({tree.root_hash, "2"}, audit_trail) == true)
 
     audit_trail = MerkleTreeElixir.audit_trail("3", tree)
-    assert(MerkleTreeElixir.verify_audit_trail(tree.root_hash, audit_trail) == true)
+    assert(MerkleTreeElixir.verify_audit_trail({tree.root_hash, "3"}, audit_trail) == true)
 
     audit_trail = MerkleTreeElixir.audit_trail("3124", tree)
-    refute(MerkleTreeElixir.verify_audit_trail(tree.root_hash, audit_trail) == true)
+    refute(MerkleTreeElixir.verify_audit_trail({tree.root_hash, "3124"}, audit_trail) == true)
   end
 
   test "Audit trail on larger trees leaf > 7" do
@@ -270,15 +270,52 @@ defmodule MerkleTreeElixirTest do
       root_hash: "12345678"
     }
 
-    assert(MerkleTreeElixir.verify_audit_trail(tree.root_hash, MerkleTreeElixir.audit_trail("2", tree)) == true)
-    assert(MerkleTreeElixir.verify_audit_trail(tree.root_hash, MerkleTreeElixir.audit_trail("5", tree)) == true)
-    assert(MerkleTreeElixir.verify_audit_trail(tree.root_hash, MerkleTreeElixir.audit_trail("7", tree)) == true)
-    assert(MerkleTreeElixir.verify_audit_trail(tree.root_hash, MerkleTreeElixir.audit_trail("8", tree)) == true)
-    refute(MerkleTreeElixir.verify_audit_trail(tree.root_hash, MerkleTreeElixir.audit_trail("9", tree)) == true)
-    refute(MerkleTreeElixir.verify_audit_trail(tree.root_hash, MerkleTreeElixir.audit_trail("0", tree)) == true)
+    audit_trail = MerkleTreeElixir.audit_trail("1", tree)
+    assert(Enum.reverse(audit_trail) == [{"1", :left}, {"2", :right}, {"34", :right}, {"5678", :right}])
 
+    audit_trail = MerkleTreeElixir.audit_trail("4", tree)
+    assert(Enum.reverse(audit_trail) == [{"4", :right}, {"3", :left}, {"12", :left}, {"5678", :right}])
 
+    audit_trail = MerkleTreeElixir.audit_trail("5", tree)
+    assert(Enum.reverse(audit_trail) == [{"5", :left}, {"6", :right}, {"78", :right}, {"1234", :left}])
+
+    audit_trail = MerkleTreeElixir.audit_trail("6", tree)
+    assert(Enum.reverse(audit_trail) == [{"6", :right}, {"5", :left}, {"78", :right}, {"1234", :left}])
+
+    audit_trail = MerkleTreeElixir.audit_trail("8", tree)
+    assert(Enum.reverse(audit_trail) == [{"8", :right}, {"7", :left}, {"56", :left}, {"1234", :left}])
+
+    audit_trail = MerkleTreeElixir.audit_trail("9", tree)
+    refute(MerkleTreeElixir.verify_audit_trail({tree.root_hash, "9"}, audit_trail) == true)
+
+    audit_trail = MerkleTreeElixir.audit_trail("0", tree)
+    refute(MerkleTreeElixir.verify_audit_trail({tree.root_hash, "0"}, audit_trail) == true)
   end
 
+  test "Refute audit trail of 'fake' leaf" do
+    
+    tree = %MerkleTreeElixir{
+      depth: 3,
+      leafs: [
+        {"1", :left},
+        {"2", :right},
+        {"3", :left},
+        {"4", :right},
+        {"5", :left},
+        {"6", :right},
+        {"12", :left}, # "Fake" leaf which is not present in rest of tree
+        {"8", :right}
+      ],
+      left_child:
+        {2, "1234", {1, "12", {0, "1", nil, nil}, {0, "2", nil, nil}},
+         {1, "34", {0, "3", nil, nil}, {0, "4", nil, nil}}},
+      right_child:
+      {2, "5678", {1, "56", {0, "5", nil, nil}, {0, "6", nil, nil}},
+      {1, "78", {0, "7", nil, nil}, {0, "8", nil, nil}}},
+      root_hash: "12345678"
+    }
 
+    audit_trail = MerkleTreeElixir.audit_trail("12", tree)
+    refute(MerkleTreeElixir.verify_audit_trail({tree.root_hash, "12"}, audit_trail) == true)
+  end
 end
