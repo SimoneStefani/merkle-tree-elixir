@@ -81,8 +81,6 @@ defmodule MerkleTreeElixir do
   end
 
   def audit_trail(index, {_, hash, nil, nil}, list) do
-    IO.puts("final index -> #{index}")
-    IO.inspect(list)
     case rem(trunc(index), 2) do
       0 -> list ++ [{hash, :left}]
       1 -> list ++ [{hash, :right}]
@@ -149,12 +147,12 @@ defmodule MerkleTreeElixir do
   def is_balanced_tree(tree = %MerkleTreeElixir{}), do: is_balanced_tree(tree.right_child)
 
 
-  def part_of_left_subtree?(depth, index) do
+  defp part_of_left_subtree?(depth, index) do
     index < (:math.pow(2, depth) / 2)
   end
 
-  def leaf_index_in_subtree(1,index_in_current_tree), do: index_in_current_tree
-  def leaf_index_in_subtree(depth_of_current_tree, index_in_current_tree) do
+  defp leaf_index_in_subtree(1,index_in_current_tree), do: index_in_current_tree
+  defp leaf_index_in_subtree(depth_of_current_tree, index_in_current_tree) do
     case part_of_left_subtree?(depth_of_current_tree, index_in_current_tree) do
       true -> index_in_current_tree
       false -> index_in_current_tree - :math.pow(2, depth_of_current_tree - 1)
@@ -162,7 +160,7 @@ defmodule MerkleTreeElixir do
   end
 
 
-  def direction_of_new_leaf(number_of_current_leafs) do
+  defp direction_of_new_leaf(number_of_current_leafs) do
     case rem(number_of_current_leafs, 2) do
       0 -> :left
       1 -> :right
