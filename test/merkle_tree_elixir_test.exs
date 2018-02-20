@@ -198,18 +198,14 @@ defmodule MerkleTreeElixirTest do
       right_child: {1, "3", {0, "3", nil, nil}, nil},
       leafs: [{"1", :left}, {"2", :right}, {"3", :left}]
     }
+    audit_trail = MerkleTreeElixir.audit_trail("1", tree)
+    assert(audit_trail == [{"3", :right}, {"2", :right}, {"1", :left}])
 
-    assert(
-      MerkleTreeElixir.audit_trail("1", tree) == [{"3", :right}, {"2", :right}, {"1", :left}]
-    )
+    audit_trail = MerkleTreeElixir.audit_trail("2", tree)
+    assert(audit_trail == [{"3", :right}, {"1", :left}, {"2", :right}])
 
-    assert(
-      MerkleTreeElixir.audit_trail("2", tree) == [{"3", :right}, {"1", :left}, {"2", :right}]
-    )
-
-    assert(
-      MerkleTreeElixir.audit_trail("3", tree) == [{"12", :left}, {nil, :right}, {"3", :left}]
-    )
+    audit_trail = MerkleTreeElixir.audit_trail("3", tree)
+    assert(audit_trail == [{"12", :left}, {nil, :right}, {"3", :left}])
   end
 
   test "find audit trail for balanced tree" do
@@ -273,6 +269,12 @@ defmodule MerkleTreeElixirTest do
     audit_trail = MerkleTreeElixir.audit_trail("1", tree)
     assert(Enum.reverse(audit_trail) == [{"1", :left}, {"2", :right}, {"34", :right}, {"5678", :right}])
 
+    audit_trail = MerkleTreeElixir.audit_trail("2", tree)
+    assert(Enum.reverse(audit_trail) == [{"2", :right}, {"1", :left}, {"34", :right}, {"5678", :right}])
+
+    audit_trail = MerkleTreeElixir.audit_trail("3", tree)
+    assert(Enum.reverse(audit_trail) == [{"3", :left}, {"4", :right}, {"12", :left}, {"5678", :right}])
+
     audit_trail = MerkleTreeElixir.audit_trail("4", tree)
     assert(Enum.reverse(audit_trail) == [{"4", :right}, {"3", :left}, {"12", :left}, {"5678", :right}])
 
@@ -281,6 +283,9 @@ defmodule MerkleTreeElixirTest do
 
     audit_trail = MerkleTreeElixir.audit_trail("6", tree)
     assert(Enum.reverse(audit_trail) == [{"6", :right}, {"5", :left}, {"78", :right}, {"1234", :left}])
+
+    audit_trail = MerkleTreeElixir.audit_trail("7", tree)
+    assert(Enum.reverse(audit_trail) == [{"7", :left}, {"8", :right}, {"56", :left}, {"1234", :left}])
 
     audit_trail = MerkleTreeElixir.audit_trail("8", tree)
     assert(Enum.reverse(audit_trail) == [{"8", :right}, {"7", :left}, {"56", :left}, {"1234", :left}])
