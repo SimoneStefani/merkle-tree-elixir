@@ -3,21 +3,8 @@ defmodule MerkleTreeElixir do
 
   def new_tree(), do: %MerkleTreeElixir{}
 
-  def is_balanced_tree(nil), do: false
-  def is_balanced_tree({_, _, nil, nil}), do: true
-  def is_balanced_tree({_, _, _, nil}), do: false
-  def is_balanced_tree({_, _, _, right}), do: is_balanced_tree(right)
-  def is_balanced_tree(%MerkleTreeElixir{depth: 0}), do: true
-  def is_balanced_tree(tree = %MerkleTreeElixir{}), do: is_balanced_tree(tree.right_child)
 
-  def direction_of_new_leaf(number_of_current_leafs) do
-    case rem(number_of_current_leafs, 2) do
-      0 -> :left
-      1 -> :right
-    end
-  end
-
-  def add_leaf_to_tree(new_data, tree = %MerkleTreeElixir{ depth: 0}) do
+  def add_leaf_to_tree(new_data, %MerkleTreeElixir{ depth: 0}) do
     hash = hash_data(new_data)
     %MerkleTreeElixir{
       depth: 1,
@@ -72,31 +59,31 @@ defmodule MerkleTreeElixir do
   end
 
 
+
   def audit_trail(hash_to_be_audited, tree = %MerkleTreeElixir{}) do
     index = Enum.find_index(tree.leafs, fn {x, _} -> x == hash_to_be_audited end)
-
-    case index do
-      nil -> []
-      _ -> audit_trail(index, tree, [])
-    end
+    audit_trail(index, tree, [])
   end
 
-  def audit_trail(
-        index,
-        tree = %MerkleTreeElixir{
-          left_child: {_, left_hash, _, _},
-          right_child: {_, right_hash, _, _}
-        },
-        list
-      ) do
+  def audit_trail(nil,_,_), do: []
+  def audit_trail(index, tree = %MerkleTreeElixir{}, list) do
+
+    {_, left_hash, _, _} = tree.left_child
+    {_, right_hash, _, _} = tree.right_child
+
+    #index = index + 1
+    new_index = leaf_index_in_subtree(tree.depth, index)
+
     case part_of_left_subtree?(tree.depth, index) do
-      true -> audit_trail(index, tree.left_child, list ++ [{right_hash, :right}])
-      false -> audit_trail(index, tree.right_child, list ++ [{left_hash, :left}])
+      true -> audit_trail(new_index, tree.left_child, list ++ [{right_hash, :right}])
+      false -> audit_trail(new_index, tree.right_child, list ++ [{left_hash, :left}])
     end
   end
 
   def audit_trail(index, {_, hash, nil, nil}, list) do
-    case rem(index, 2) do
+    IO.puts("final index -> #{index}")
+    IO.inspect(list)
+    case rem(trunc(index), 2) do
       0 -> list ++ [{hash, :left}]
       1 -> list ++ [{hash, :right}]
     end
@@ -105,34 +92,32 @@ defmodule MerkleTreeElixir do
   def audit_trail(index, {_, _, left_child, nil}, list),
     do: audit_trail(index, left_child, list ++ [{nil, :right}])
 
-  def audit_trail(
-        index,
-        {depth, _, {left_depth, left_hash, left_left, left_right},
-         {right_depth, right_hash, right_left, right_right}},
-        list
-      ) do
-    case part_of_left_subtree?(depth, index) do
-      true ->
-        audit_trail(
-          index,
-          {left_depth, left_hash, left_left, left_right},
-          list ++ [{right_hash, :right}]
-        )
+  def audit_trail(index, {depth, _, left_child, right_child}, list) do
 
-      false ->
-        audit_trail(
-          index,
-          {right_depth, right_hash, right_left, right_right},
-          list ++ [{left_hash, :left}]
-        )
+    {_, left_hash,_,_} = left_child
+    {_, right_hash,_,_} = right_child
+
+    new_index = leaf_index_in_subtree(depth, index)
+
+    case part_of_left_subtree?(depth, index) do
+      true -> audit_trail(new_index, left_child, list ++ [{right_hash, :right}])
+      false -> audit_trail(new_index, right_child, list ++ [{left_hash, :left}])
     end
   end
 
+
+  
   def verify_audit_trail(_, []), do: false
 
-  def verify_audit_trail(root_hash, list),
-    do: verify_audit_trail(root_hash, "", Enum.reverse(list))
-
+  def verify_audit_trail({root_hash, leaf_hash} , audit_trail) do
+    reversed_audit_trail = Enum.reverse(audit_trail)
+    [{head_hash,_}|_] = reversed_audit_trail
+    
+    case head_hash == leaf_hash do
+      true -> verify_audit_trail(root_hash, "", reversed_audit_trail)
+      false -> false
+    end
+  end
   def verify_audit_trail(root_hash, root_hash, []), do: true
   def verify_audit_trail(_, _, []), do: false
 
@@ -148,9 +133,42 @@ defmodule MerkleTreeElixir do
     verify_audit_trail(root_hash, hash_data(new_hash, audit_hash), tail)
   end
 
+
+
+
+
+  ##########################
+  #### Helper Functions ####
+  ##########################
+
+  def is_balanced_tree(nil), do: false
+  def is_balanced_tree({_, _, nil, nil}), do: true
+  def is_balanced_tree({_, _, _, nil}), do: false
+  def is_balanced_tree({_, _, _, right}), do: is_balanced_tree(right)
+  def is_balanced_tree(%MerkleTreeElixir{depth: 0}), do: true
+  def is_balanced_tree(tree = %MerkleTreeElixir{}), do: is_balanced_tree(tree.right_child)
+
+
   def part_of_left_subtree?(depth, index) do
     index < (:math.pow(2, depth) / 2)
   end
+
+  def leaf_index_in_subtree(1,index_in_current_tree), do: index_in_current_tree
+  def leaf_index_in_subtree(depth_of_current_tree, index_in_current_tree) do
+    case part_of_left_subtree?(depth_of_current_tree, index_in_current_tree) do
+      true -> index_in_current_tree
+      false -> index_in_current_tree - :math.pow(2, depth_of_current_tree - 1)
+    end
+  end
+
+
+  def direction_of_new_leaf(number_of_current_leafs) do
+    case rem(number_of_current_leafs, 2) do
+      0 -> :left
+      1 -> :right
+    end
+  end
+
 
   def hash_data(data) do
     to_string(data)
